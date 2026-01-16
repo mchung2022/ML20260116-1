@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>辛普森風格：法案大冒險 (素養加強版)</title>
+    <style>
+        :root {
+            --simpson-yellow: #FED90F; 
+            --simpson-blue: #56B4D3;   
+            --donut-pink: #D55179;     
+            --nuclear-green: #70C125;  
+            --wall-color: #F4E3B1;     
+            --black-border: 6px solid black; /* 統一粗框變數 */
+        }
+
+        body {
+            font-family: 'Arial Black', 'Impact', '微軟正黑體', sans-serif;
+            background-color: var(--simpson-blue);
+            background-image: 
+                radial-gradient(circle at 20% 20%, white 40px, transparent 42%),
+                radial-gradient(circle at 80% 80%, white 60px, transparent 62%);
+            background-size: 300px 300px;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: black;
+        }
+
+        .slide-container {
+            width: 95%;
+            max-width: 1100px;
+            height: 90vh; /*稍微加高以容納討論內容*/
+            background: var(--wall-color);
+            border: 8px solid black;
+            border-radius: 30px 50px 30px 40px;
+            box-shadow: 15px 15px 0px black;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .progress-container {
+            height: 25px;
+            background: #333;
+            border-bottom: 5px solid black;
+            padding: 5px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--nuclear-green);
+            width: 0%;
+            transition: width 0.3s;
+            border-radius: 10px;
+            border: 3px solid black;
+            box-shadow: inset 0 0 10px yellow;
+        }
+
+        .slide {
+            flex: 1;
+            padding: 20px 50px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            overflow-y: auto;
+            animation: bounceIn 0.5s;
+        }
+
+        .slide.active { display: flex; }
+
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            70% { transform: scale(1.02); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        h1 { 
+            font-size: 3.5em; margin: 10px 0; color: var(--simpson-yellow);
+            text-shadow: -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 8px 8px 0 rgba(0,0,0,0.3);
+            letter-spacing: 2px;
+        }
+
+        h2 { 
+            font-size: 2.8em; margin: 10px 0; color: black;
+            text-shadow: 3px 3px 0 white;
+        }
+
+        p, li { 
+            font-size: 1.6em; line-height: 1.4; margin: 10px 0; font-weight: bold;
+        }
+
+        .speech-bubble {
+            background: white;
+            border: 5px solid black;
+            border-radius: 30px;
+            padding: 20px 30px;
+            position: relative;
+            font-size: 1.6em;
+            display: inline-block;
+            max-width: 800px;
+            margin-bottom: 20px;
+            box-shadow: 8px 8px 0 rgba(0,0,0,0.2);
+        }
+        .speech-bubble::after {
+            content: ''; position: absolute; bottom: -20px; left: 50px;
+            border-width: 20px 20px 0; border-style: solid; border-color: black transparent;
+            display: block; width: 0;
+        }
+        .speech-bubble::before {
+            content: ''; position: absolute; bottom: -13px; left: 55px;
+            border-width: 15px 15px 0; border-style: solid; border-color: white transparent;
+            display: block; width: 0; z-index: 1;
+        }
+
+        .highlight-box {
+            background: var(--donut-pink);
+            color: white;
+            border: 5px solid black;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 15px 0;
+            width: 85%;
+            box-shadow: 8px 8px 0 black;
+            text-shadow: 2px 2px 0 black;
+            position: relative;
+        }
+
+        /* 新增：探究便利貼風格 */
+        .sticky-note-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .sticky-note {
+            background: #FFEB3B;
+            width: 45%;
+            padding: 20px;
+            box-sizing: border-box;
+            font-family: 'Comic Sans MS', cursive; /* 手寫感 */
+            font-size: 1.4em;
+            color: #333;
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.3);
+            transform: rotate(-2deg);
+            transition: transform 0.3s;
+            position: relative;
+        }
+        .sticky-note:nth-child(even) { transform: rotate(2deg); background: #4DD0E1; }
+        .sticky-note:hover { transform: scale(1.1) rotate(0deg); z-index: 10; }
+        .sticky-note::before { /* 膠帶 */
+            content: ''; position: absolute; top: -10px; left: 40%;
+            width: 60px; height: 20px; background: rgba(255,255,255,0.6);
+            transform: rotate(-2deg);
+        }
+
+        .discussion-tag {
+            background: black; color: white; padding: 5px 15px;
+            font-size: 0.8em; border-radius: 5px; margin-bottom: 10px; display: inline-block;
+        }
+
+        .controls {
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            background: var(--simpson-yellow);
+            border-top: 6px solid black;
+            align-items: center;
+        }
+
+        button {
+            background: var(--donut-pink);
+            color: white;
+            border: 4px solid black;
+            padding: 10px 25px;
+            font-size: 1.5em;
+            font-family: inherit;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 5px 5px 0px black;
+            text-shadow: 2px 2px 0 black;
+            transition: all 0.1s;
+        }
+        button:active { transform: translate(5px, 5px); box-shadow: 0px 0px 0px black; }
+        button:disabled { background: #999; cursor: not-allowed; opacity: 0.7; box-shadow: none; }
+
+        .emoji-icon { font-size: 4em; display: block; filter: drop-shadow(5px 5px 0 black); margin-bottom: 10px;}
+
+        .cartoon-table {
+            width: 100%; border-collapse: separate; border-spacing: 5px; background: black;
+        }
+        .cartoon-table th, .cartoon-table td {
+            border: 4px solid black; padding: 15px; background: white;
+        }
+        .cartoon-table th { background: var(--simpson-yellow); }
+
+    </style>
+</head>
+<body>
+
+<div class="slide-container">
+    <div class="progress-container"><div class="progress-fill" id="progress"></div></div>
+
+    <div class="slide active">
+        <h1>🍩 公民課：法案大冒險</h1>
+        <span class="emoji-icon">🏫</span>
+        <div class="speech-bubble">
+            「D'oh! 我想要珍珠奶茶半價！要怎麼立法？」
+        </div>
+        <p>今天用「辛普森風格」帶你跑一次立法院流程，<br>還有超重要的<strong>素養探究</strong>！</p>
+        <p style="color:var(--donut-pink); text-shadow: 2px 2px 0 black;">(按右下角的按鈕開始囉！)</p>
+    </div>
+
+    <div class="slide">
+        <h2>案例：飲料半價法案</h2>
+        <span class="emoji-icon">🥤➕💰 ➡️ ⬇️</span>
+        <div class="highlight-box">
+            <p><strong>第 1 條：</strong> 全國高中生買手搖飲，一律半價。</p>
+            <p><strong>第 2 條：</strong> 價差由教育部編列預算補貼。</p>
+        </div>
+        <p>這聽起來是「德政」，但在真實的政治運作中會遇到什麼問題？</p>
+    </div>
+
+    <div class="slide">
+        <h2>第一關：提案 & 門神</h2>
+        <span class="emoji-icon">🚪👮‍♂️</span>
+        <div style="background: white; border: 5px solid black; padding: 20px; width: 80%; border-radius: 20px;">
+            <p>👉 <strong>連署 (Co-signing)</strong>：立委提案需要找 <strong>15個朋友</strong> 簽名。</p>
+            <p>👉 <strong>程序委員會</strong>：他們會檢查法案。</p>
+        </div>
+        <div class="speech-bubble" style="margin-top:20px; border-color: var(--nuclear-green);">
+            老師問：「為什麼需要這關？如果沒有這關，立法院會不會被一堆『每個人發一億元』的法案淹沒？」
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2>第二關：委員會大戰</h2>
+        <span class="emoji-icon">🗣️💥</span>
+        <p>法案進入「教育文化委員會」。</p>
+        <p>教育部官員會來<strong>備詢</strong>（被罵），立委會互相<strong>質詢</strong>（吵架）。</p>
+        <div class="highlight-box" style="background: var(--nuclear-green); color: black; text-shadow: none;">
+            <strong>☢️ 政治協商結果：</strong><br>
+            雙方妥協，改成「每週五限定」半價。
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2 style="color:red; text-decoration: underline;">🧠 素養探究：錢從哪來？</h2>
+        <span class="emoji-icon">💸🤔</span>
+        <p>法案過了，學生很爽。但教育部多了這筆開銷...</p>
+        
+        <div class="sticky-note-container">
+            <div class="sticky-note">
+                <span class="discussion-tag">爭點 A：排擠效應</span><br>
+                教育部的總預算有限！<br>
+                如果拿去補貼飲料，是不是要<strong>縮減「學校午餐」或「冷氣費」</strong>的補助？
+            </div>
+            <div class="sticky-note">
+                <span class="discussion-tag">爭點 B：公平性</span><br>
+                不喝含糖飲料的健康學生，為什麼要用他們的稅金(未來的債務)去補貼喝飲料的人？
+            </div>
+        </div>
+        <p style="margin-top:20px; font-size:1.4em;">👉 思考：你覺得為了「飲料自由」，犧牲「營養午餐」值得嗎？</p>
+    </div>
+
+    <div class="slide">
+        <h2>第三關：三讀敲槌</h2>
+        <span class="emoji-icon">⚖️🔨</span>
+        <p><strong>二讀</strong>是逐條討論的關鍵戰場。</p>
+        <p><strong>三讀</strong>通常只是形式上的最後投票。</p>
+        <h1 style="color:var(--nuclear-green); transform: rotate(-5deg); font-size: 4em;">通過啦！！🎉</h1>
+        <p>立法院長敲槌定案！</p>
+    </div>
+
+    <div class="slide">
+        <h2>⚠️ 關鍵知識：副署 (Countersignature)</h2>
+        <p>總統公布法律，須經 <strong>行政院院長</strong> 副署。</p>
+        <div class="highlight-box">
+            <strong>這代表什麼？</strong><br>
+            代表行政院長要對這個法律「負責」！並準備去執行它。
+        </div>
+        <div class="speech-bubble">
+            「如果院長覺得這法律太爛（或根本做不到），拒絕簽名呢？」
+        </div>
+    </div>
+
+    <div class="slide">
+        <h2 style="color:red; text-decoration: underline;">🧠 素養探究：當院長說不！</h2>
+        <span class="emoji-icon">🙅‍♂️📜</span>
+        <p>如果行政院長認為「飲料法」會讓國家破產，他有什麼武器？</p>
+
+        <div class="sticky-note-container">
+            <div class="sticky-note" style="background:#FFAB91;">
+                <span class="discussion-tag">武器：覆議案 (Reconsideration)</span><br>
+                院長經總統核可，可以把法案<strong>退回立法院</strong>說：「請你們再想一想(Reconsider)！」
+            </div>
+            <div class="sticky-note" style="background:#CE93D8;">
+                <span class="discussion-tag">結局：誰輸誰贏？</span><br>
+                若立法院投票後，<strong>超過一半</strong>立委堅持原案，院長就<strong>必須接受</strong> (不然就辭職)。
+            </div>
+        </div>
+        <p style="margin-top:15px; font-size:1.2em;">👉 台灣實例：想想看最近的國會改革法案，是不是也走了這個「覆議」流程？這就是行政權與立法權的制衡。</p>
+    </div>
+
+    <div class="slide">
+        <h2>🧐 最後複習：連署 vs 副署</h2>
+        <table class="cartoon-table">
+            <tr>
+                <th>項目</th>
+                <th style="background:var(--simpson-yellow);">連署 (Co-sign)</th>
+                <th style="background:var(--donut-pink); color:white;">副署 (Counter-sign)</th>
+            </tr>
+            <tr>
+                <td><strong>時間點</strong></td>
+                <td><strong>一開始</strong> (提案時)</td>
+                <td><strong>最後面</strong> (公布時)</td>
+            </tr>
+            <tr>
+                <td><strong>誰要做？</strong></td>
+                <td>立法委員</td>
+                <td>行政院長</td>
+            </tr>
+            <tr>
+                <td><strong>意義</strong></td>
+                <td>湊人數成案</td>
+                <td>行政權負責</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="slide">
+        <h1>🎉 下課啦！Woo-hoo!</h1>
+        <span class="emoji-icon">🍩🧘‍♂️📺</span>
+        <p>恭喜你！你不只懂了流程，還懂了「預算排擠」跟「憲政制衡」。</p>
+        <p>這才是真正的公民素養！</p>
+        <button onclick="location.reload()" style="background:var(--nuclear-green); color:black; text-shadow:none; font-size: 2em;">🔄 再玩一次</button>
+    </div>
+
+    <div class="controls">
+        <button id="prevBtn" onclick="changeSlide(-1)">⬅️ 上一頁</button>
+        <span id="page-indicator" style="font-size: 2em; font-weight: bold; color: black; text-shadow: 2px 2px 0 white;">1 / 10</span>
+        <button id="nextBtn" onclick="changeSlide(1)">下一頁 ➡️</button>
+    </div>
+</div>
+
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const progressBar = document.getElementById('progress');
+    const pageIndicator = document.getElementById('page-indicator');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function updateUI() {
+        slides.forEach((slide, index) => {
+            if (index === currentSlide) {
+                slide.classList.add('active');
+            } else {
+                slide.classList.remove('active');
+            }
+        });
+
+        const progressPercentage = ((currentSlide + 1) / totalSlides) * 100;
+        progressBar.style.width = `${progressPercentage}%`;
+        pageIndicator.innerText = `${currentSlide + 1} / ${totalSlides}`;
+
+        prevBtn.disabled = currentSlide === 0;
+        if (currentSlide === totalSlides - 1) {
+            nextBtn.innerText = "完成! Hoo!";
+            nextBtn.style.backgroundColor = "var(--nuclear-green)";
+            nextBtn.onclick = () => location.reload();
+        } else {
+            nextBtn.innerText = "下一頁 ➡️";
+            nextBtn.style.backgroundColor = "var(--donut-pink)";
+            nextBtn.onclick = () => changeSlide(1);
+            nextBtn.disabled = false;
+        }
+    }
+
+    function changeSlide(direction) {
+        currentSlide += direction;
+        if (currentSlide < 0) currentSlide = 0;
+        if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
+        updateUI();
+    }
+
+    updateUI();
+</script>
+
+</body>
+</html>
